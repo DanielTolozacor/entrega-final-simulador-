@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reservas de Clases de Baile</title>
+    <link rel="stylesheet" href="styles/styles.css">
+    <!-- Todos los scripts JS con defer antes del src -->
+    <script defer src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script defer src="reservation.js"></script>
+    <script defer src="js/main.js"></script>
+    <script defer src="js/lang.js"></script>
+    <script defer src="js/tour.js"></script>
+</head>
+<body>
+    <!-- Selector de idioma arriba a la derecha -->
+    <div style="position: absolute; top: 18px; right: 30px; z-index: 100;">
+        <label for="langSelect"><strong>Idioma / Language:</strong></label>
+        <select id="langSelect">
+            <option value="es">Español</option>
+            <option value="en">English</option>
+        </select>
+    </div>
+    <!-- Botón de ayuda en la parte superior derecha, debajo del selector de idioma -->
+    <div style="position: absolute; top: 55px; right: 30px; z-index: 100;">
+        <button id="btnTour" style="padding:4px 12px; font-size:1em;">¿Cómo funciona?</button>
+    </div>
+    <header class="header">
+        <h1>Reservas de Clases de Baile</h1>
+    </header>
+    <main class="main">
+        <section class="info">
+            <h2>Clases Disponibles</h2>
+            <ul id="clasesMenu" class="clases-horizontal">
+                <li><button class="clase-btn" data-clase="tango">Tango</button></li>
+                <li><button class="clase-btn" data-clase="vals">Vals</button></li>
+                <li><button class="clase-btn" data-clase="milonga">Milonga</button></li>
+                <li><button class="clase-btn" data-clase="tango-escenario">Tango Escenario</button></li>
+            </ul>
+        </section>
+        <section class="reservation-form" id="reservationFormSection" style="display:none;">
+            <h2>Reserva tu Clase</h2>
+            <form id="reservationForm">
+                <label data-i18n="nombre" for="name"></label>
+                <input type="text" id="name" required>
+                
+                <label for="phone">Teléfono:</label>
+                <input type="tel" id="phone" placeholder="+[código de país] [número]" required>
+                
+                <label for="date">Fecha:</label>
+                <input type="date" id="date" required>
+                
+                <label for="time">Horario:</label>
+                <select id="time" required>
+                    <!-- Opciones generadas dinámicamente -->
+                </select>
+                
+                <button type="submit">Reservar</button>
+            </form>
+            <div id="ticketReserva" style="display:none; margin-top:10px;"></div>
+        </section>
+        <section class="reservations-list">
+            <h2>Reservas Actuales</h2>
+            <ul id="reservations"></ul>
+        </section>
+        <div id="reservationsTotal"></div>
+    </main>
+</body>
+</html>
