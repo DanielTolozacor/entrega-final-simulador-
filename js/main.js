@@ -53,7 +53,7 @@ function fillAvailableHours(dateValue, reservedIdx, isEdit = false) {
 }
 document.getElementById("date").addEventListener("change", () => fillAvailableHours());
 
-// Mostrar reservas y botones admin usando backticks
+// Renderiza las reservas con un checkbox para cada una
 function renderReservations() {
     const reservas = getReservations();
     const t = textos[userLang];
@@ -68,7 +68,36 @@ function renderReservations() {
             ${r.name} | ${r.clase} | ${r.date} | ${r.time} | ${r.phone}
         </li>
     `).join('');
+
+    // Editar: pide clave de admin antes de permitir editar
+    document.querySelectorAll('.edit-btn').forEach(btn => {
+        btn.onclick = () => {
+            Swal.fire({
+                title: 'Contraseña de administrador',
+                input: 'password',
+                inputLabel: 'Ingrese la contraseña para modificar reservas',
+                inputPlaceholder: 'Contraseña',
+                showCancelButton: true,
+                confirmButtonText: 'Aceptar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed && result.value === ADMIN_PASSWORD) {
+                    editarReserva(btn.dataset.idx);
+                } else if (result.isConfirmed) {
+                    Swal.fire(textos[userLang].alertaClaveIncorrecta, textos[userLang].alertaNoAccion("modificar"), 'error');
+                }
+            });
+        };
+    });
 }
+
+// Checkpoint para seleccionar/deseleccionar todos los checkboxes de reservas
+document.getElementById("selectAllChecks").addEventListener("change", function() {
+    const checked = this.checked;
+    document.querySelectorAll(".reserva-check").forEach(chk => {
+        chk.checked = checked;
+    });
+});
 
 // SweetAlert2 para clave admin
 function pedirClaveAdmin(callback, accion) {
@@ -133,13 +162,48 @@ reservationForm.onsubmit = function(event) {
     const phone = document.getElementById("phone").value;
     const dateValue = document.getElementById("date").value;
     const time = document.getElementById("time").value;
-    if (!claseSeleccionada) return alert("Por favor, selecciona una clase antes de reservar.");
-    if (!validarNombre(name)) return alert(textos[userLang].alertaNombreInvalido || "Nombre inválido.");
-    if (!validarTelefono(phone)) return alert(textos[userLang].alertaTelefonoInvalido || "Teléfono inválido.");
-    if (!time) return alert("Por favor, selecciona un horario disponible.");
+    if (!claseSeleccionada) {
+        Swal.fire({
+            icon: 'warning',
+            title: textos[userLang].alertaTitulo,
+            text: textos[userLang].alertaReservarClase || "Por favor, selecciona una clase antes de reservar."
+        });
+        return;
+    }
+    if (!validarNombre(name)) {
+        Swal.fire({
+            icon: 'warning',
+            title: textos[userLang].alertaTitulo,
+            text: textos[userLang].alertaNombreInvalido || "Nombre inválido."
+        });
+        return;
+    }
+    if (!validarTelefono(phone)) {
+        Swal.fire({
+            icon: 'warning',
+            title: textos[userLang].alertaTitulo,
+            text: textos[userLang].alertaTelefonoInvalido || "Teléfono inválido."
+        });
+        return;
+    }
+    if (!time) {
+        Swal.fire({
+            icon: 'warning',
+            title: textos[userLang].alertaTitulo,
+            text: textos[userLang].alertaHorario || "Por favor, selecciona un horario disponible."
+        });
+        return;
+    }
     const now = new Date();
     const selectedDateTime = new Date(`${dateValue}T${time}`);
-    if (selectedDateTime <= now) return alert("Solo puedes reservar horarios futuros.");
+    if (selectedDateTime <= now) {
+        Swal.fire({
+            icon: 'warning',
+            title: textos[userLang].alertaTitulo,
+            text: textos[userLang].alertaFuturo
+        });
+        return;
+    }
     const result = createReservation(name, phone, dateValue, claseSeleccionada, time);
     if (result) {
         renderReservations();
@@ -147,7 +211,11 @@ reservationForm.onsubmit = function(event) {
         fillAvailableHours();
         mostrarTicket(name, phone, dateValue, claseSeleccionada, time);
     } else {
-        alert("Datos inválidos o reserva duplicada.");
+        Swal.fire({
+            icon: 'error',
+            title: textos[userLang].alertaTitulo,
+            text: textos[userLang].alertaDuplicada || "Datos inválidos o reserva duplicada."
+        });
     }
 };
 
@@ -200,15 +268,49 @@ function editarReserva(idx) {
         const phone = document.getElementById("editPhone").value;
         const dateValue = document.getElementById("editDate").value;
         const time = document.getElementById("editTime").value;
-        if (!/^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]+$/.test(name)) return alert("El nombre solo puede contener letras y espacios.");
-        if (!/^[\d+\s]+$/.test(phone)) return alert("El teléfono solo puede contener números, espacios y el signo +.");
-        if (!time) return alert("Por favor, selecciona un horario disponible.");
+        if (!/^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]+$/.test(name)) {
+            Swal.fire({
+                icon: 'warning',
+                title: textos[userLang].alertaTitulo,
+                text: textos[userLang].alertaNombreSoloLetras || "El nombre solo puede contener letras y espacios."
+            });
+            return;
+        }
+        if (!/^[\d+\s]+$/.test(phone)) {
+            Swal.fire({
+                icon: 'warning',
+                title: textos[userLang].alertaTitulo,
+                text: textos[userLang].alertaTelefonoSoloNumeros || "El teléfono solo puede contener números, espacios y el signo +."
+            });
+            return;
+        }
+        if (!time) {
+            Swal.fire({
+                icon: 'warning',
+                title: textos[userLang].alertaTitulo,
+                text: textos[userLang].alertaHorario || "Por favor, selecciona un horario disponible."
+            });
+            return;
+        }
         const now = new Date();
         const selectedDateTime = new Date(`${dateValue}T${time}`);
-        if (selectedDateTime <= now) return alert("Solo puedes reservar horarios futuros.");
+        if (selectedDateTime <= now) {
+            Swal.fire({
+                icon: 'warning',
+                title: textos[userLang].alertaTitulo,
+                text: textos[userLang].alertaFuturo
+            });
+            return;
+        }
         const all = getReservations();
-        if (all.some((r, i) => i !== idx && r.date === dateValue && r.time === time))
-            return alert("Ya existe una reserva para esa fecha y horario.");
+        if (all.some((r, i) => i !== idx && r.date === dateValue && r.time === time)) {
+            Swal.fire({
+                icon: 'warning',
+                title: textos[userLang].alertaTitulo,
+                text: textos[userLang].alertaYaExiste || "Ya existe una reserva para esa fecha y horario."
+            });
+            return;
+        }
         all[idx] = { name, phone, date: dateValue, clase: reserva.clase, time };
         modal.style.display = "none";
         renderReservations();
@@ -259,6 +361,8 @@ const textos = {
         alertaInactividadTexto: "También mucha gente reservando, ¡no pierdas tu lugar!",
         alertaInactividadContinuar: "Continuar",
         alertaInactividadCancelar: "Cancelar",
+        alertaTitulo: "Atención",
+        alertaFuturo: "Solo puedes reservar fechas futuras y horarios futuros.",
     },
     en: {
         titulo: "Dance Class Reservations",
@@ -292,6 +396,8 @@ const textos = {
         alertaInactividadTexto: "Many people are booking, don't lose your spot!",
         alertaInactividadContinuar: "Continue",
         alertaInactividadCancelar: "Cancel",
+        alertaTitulo: "Attention",
+        alertaFuturo: "You can only book future dates and times.",
     }
 };
 
@@ -384,3 +490,36 @@ resetInactividad();
 renderReservations();
 reservationFormSection.classList.add("visible");
 reservationFormSection.classList.remove("oculto");
+
+// Solo el administrador puede borrar reservas seleccionadas
+document.getElementById("borrarSeleccionadasBtn").addEventListener("click", function() {
+    const checks = document.querySelectorAll(".reserva-check:checked");
+    if (checks.length === 0) {
+        Swal.fire({
+            icon: 'warning',
+            title: textos[userLang].alertaTitulo || 'Atención',
+            text: textos[userLang].alertaSeleccionaReserva
+        });
+        return;
+    }
+    // Pide clave de administrador antes de borrar
+    Swal.fire({
+        title: 'Contraseña de administrador',
+        input: 'password',
+        inputLabel: 'Ingrese la contraseña para borrar reservas',
+        inputPlaceholder: 'Contraseña',
+        showCancelButton: true,
+        confirmButtonText: 'Aceptar',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed && result.value === ADMIN_PASSWORD) {
+            let reservas = getReservations();
+            const indices = Array.from(checks).map(chk => parseInt(chk.dataset.idx));
+            reservas = reservas.filter((_, idx) => !indices.includes(idx));
+            localStorage.setItem("reservas", JSON.stringify(reservas));
+            renderReservations();
+        } else if (result.isConfirmed) {
+            Swal.fire(textos[userLang].alertaClaveIncorrecta, textos[userLang].alertaNoAccion("borrar"), 'error');
+        }
+    });
+});

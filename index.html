@@ -60,7 +60,13 @@
             <div id="ticketReserva" style="display:none; margin-top:10px;"></div>
         </section>
         <section class="reservations-list">
-            <h2>Reservas Actuales</h2>
+            <h2 id="reservasTitle">Reservas Actuales</h2>
+            <!-- Checkpoint para seleccionar todos -->
+            <label style="display:block; margin-bottom:8px;">
+                <input type="checkbox" id="selectAllChecks">
+                <strong id="selectAllLabel">Seleccionar todas</strong>
+            </label>
+            <button id="borrarSeleccionadasBtn" style="margin-bottom:10px;">Borrar seleccionadas</button>
             <ul id="reservations"></ul>
         </section>
         <div id="reservationsTotal"></div>
